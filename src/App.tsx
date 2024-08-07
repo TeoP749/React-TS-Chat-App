@@ -1,15 +1,37 @@
-import './App.css'
+import { useEffect, useState } from 'react';
+import './App.css';
+import ChatView from './components/chat/ChatView';
+import { socket } from './socket';
 
 function App() {
+  const [isConnected, setIsConnected] = useState(socket.connected);
+
+  useEffect(() => {
+    function onConnect() {
+      setIsConnected(true);
+    }
+
+    function onDisconnect() {
+      setIsConnected(false);
+    }
+
+    socket.on('connect', onConnect);
+    socket.on('disconnect', onDisconnect);
+
+    return () => {
+      socket.off('connect', onConnect);
+      socket.off('disconnect', onDisconnect);
+    };
+  }, []);
+
+  useEffect(() => {
+    console.log("connected status: ", isConnected);
+  }, [isConnected]);
 
   return (
-    <div className="bg-base-300 size-full overflow-auto">
-    <h1 className="text-3xl font-bold mt-5">
-      Hello world!
-    </h1>
-    <button className="btn btn-primary mt-5">Button</button>
-    </div>
+    <ChatView />
   )
 }
+
 
 export default App

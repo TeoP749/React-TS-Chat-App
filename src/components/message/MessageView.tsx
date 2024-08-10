@@ -35,23 +35,25 @@ export const get_test_message: () => Message = () => {
 }
 
 
-
 const MessageView = forwardRef(function MessageView(props: { messages: Message[], current_user: string }, ref: React.ForwardedRef<HTMLDivElement>) {
     const { messages, current_user } = props;
+    let prev_message_sender: string = "";
     return (
-        <div className="no-scrollbar relative max-h-full overflow-y-auto pt-[1vh] pb-[1.5vh]" ref={ref}>
-            <div className="message-view flex flex-col items-center justify-center gap-[2vh]">
-                {messages.map((message) => (
-                    <div key={message.id} className={
-                        message.user === current_user ?
-                            "self-end mr-[1vw]" :
-                            "self-start ml-[1vw]"
-                    }>
-                        <MessageCard message={message} />
-                    </div>
-                ))}
+        <div className="no-scrollbar size-full relative max-h-full overflow-y-auto pt-[1vh] pb-[1.5vh]" ref={ref}>
+            <div className="message-view flex flex-col items-center justify-center">
+                {messages.map((message: Message) => {
+
+                    const component = (
+                        <div key={message.id} className={message.user === current_user ? "self-end mr-[1vw]" : "self-start ml-[1vw]"}>
+                            <MessageCard message={message} show_sender={message.user !== current_user && message.user !== prev_message_sender} />
+                        </div>
+                    );
+
+                    prev_message_sender = message.user;
+                    return component;
+                })}
             </div>
-        </div>
+        </div >
     );
 });
 

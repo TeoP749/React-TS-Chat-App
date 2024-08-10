@@ -16,7 +16,7 @@ function MessageInput(props: { onMessage: (message: Message) => void, user: stri
                         setMessage("");
                     }
                 }} />
-                <FontAwesomeIcon icon={faPaperPlane} className="cursor-pointer" onClick={() => { onMessage({ id: uuidv4(), user: "Test User", message: message }); setMessage("") }} />
+                <FontAwesomeIcon icon={faPaperPlane} className="cursor-pointer" onClick={() => { onMessage({ id: uuidv4(), user: user, message: message }); setMessage("") }} />
             </label>
         </div>
     );

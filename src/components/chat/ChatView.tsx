@@ -5,9 +5,9 @@ import MessageInput from '../message_input/MessageInput';
 import { socket } from '../../socket';
 import './ChatView.css';
 
-function ChatView() {
+function ChatView(props: { self_username: string }) {
+    const { self_username } = props;
     const [messages, setMessages] = useState([] as Message[]);
-    const [current_user, _] = useState("Test User " + Math.floor(Math.random() * 100));
     const ref: React.ForwardedRef<HTMLDivElement> = useRef(null);
     const add_message: (message: Message) => void = (message: Message) => {
         setMessages(prevMessages => [...prevMessages, message]);
@@ -32,13 +32,13 @@ function ChatView() {
     }, [messages]);
 
     return (<>
-        <div className="bg-base-200 size-full overflow-auto flex flex-col">
-            <MessageView messages={messages} current_user={current_user} ref={ref} />
+        <div className="bg-success-content size-full overflow-auto flex flex-col">
+            <MessageView messages={messages} current_user={self_username} ref={ref} />
             <div className='mt-auto mx-[1vw] mb-[1vh] sticky flex items-center justify-center'>
                 <div className='w-full'>
                     <MessageInput onMessage={
                         (message) => {
-                            if (message.message != "") {
+                            if (message.message.trim() != "") {
                                 add_message(message);
                                 socket.emit('message', message);
                             } else {
@@ -46,7 +46,7 @@ function ChatView() {
                             }
                         }
                     }
-                        user={current_user}
+                        user={self_username}
                     />
                 </div>
             </div>

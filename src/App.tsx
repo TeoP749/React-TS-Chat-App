@@ -89,6 +89,10 @@ function App() {
     socket.on("user connected", (user: User) => {
       console.log("user connected - " + user.username);
       setUsers((prevUsers) => {
+        if (prevUsers.find((u) => u.userID === user.userID)) {
+          return prevUsers;
+        }
+
         const newUser = processUser(user);
         return [...prevUsers, newUser].sort(sortUsers);
       });

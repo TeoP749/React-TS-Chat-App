@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import './App.css';
 import ChatView from './components/chat/ChatView';
+import { Message } from './components/message/MessageCard';
 import ResizableSidebar from './components/sidebar/ResizableSidebar';
 import UsernameSelection from './components/users/UsernameSelection';
-import { socket } from './socket';
 import UsersView from './components/users/UsersView';
+import { socket } from './socket';
 
 socket.onAny((event, ...args) => {
   console.log(event, args);
@@ -14,6 +16,9 @@ export type User = {
   userID: string;
   username: string;
   self: boolean;
+  connected?: boolean;
+  unread_messages?: number;
+  messages?: Message[];
 };
 
 const sortUsers = (a: User, b: User) => {
@@ -31,24 +36,46 @@ const processUser = (user: { userID: string; username: string; }) => {
   };
 };
 
+const empty_user: User = {
+  userID: "",
+  username: "",
+  self: false,
+};
+
 function App() {
   const testing: boolean = false;
-  const [selectedUsername, setSelectedUsername] = useState("");
+  const [usernameSelected, setUsernameSelected] = useState<boolean>(false);
+  const [selfUser, setSelfUser] = useState<User>(empty_user);
+  const [selectedUser, setSelectedUser] = useState<User>(empty_user);
   const [users, setUsers] = useState<User[]>([]);
-  const [isConnected, setIsConnected] = useState(socket.connected);
   const [sidebarWidth, setSidebarWidth] = useState<number>(200);
 
+  const setUserMessages = (userID: string, updateCallback: (prevMessages: Message[] | undefined) => Message[]) => {
+    setUsers(prevUsers =>
+      prevUsers.map(user =>
+        user.userID === userID
+          ? { ...user, messages: updateCallback(user.messages || []) }
+          : user
+      )
+    );
+  };
+
   useEffect(() => {
-    function onConnect() {
-      setIsConnected(true);
-    }
+    socket.on("connect", () => {
+      users.forEach((user) => {
+        if (user.self) {
+          user.connected = true;
+        }
+      });
+    });
 
-    function onDisconnect() {
-      setIsConnected(false);
-    }
-
-    socket.on('connect', onConnect);
-    socket.on('disconnect', onDisconnect);
+    socket.on("disconnect", () => {
+      users.forEach((user) => {
+        if (user.self) {
+          user.connected = false;
+        }
+      });
+    });
 
     socket.on("users", (users) => {
       console.log("received users")
@@ -67,40 +94,46 @@ function App() {
       });
     });
 
+    socket.on("user disconnected", (id) => {
+      for (let i = 0; i < users.length; i++) {
+        const user = users[i];
+        if (user.userID === id) {
+          user.connected = false;
+          break;
+        }
+      }
+    });
     socket.on("connect_error", (err) => {
       if (err.message === "invalid username") {
-        setSelectedUsername("");
+        setUsernameSelected(false);
+        setSelfUser(empty_user);
       }
     });
 
     return () => {
-      socket.off('connect', onConnect);
-      socket.off('disconnect', onDisconnect);
       socket.off("connect_error");
     };
   }, []);
 
-  useEffect(() => {
-    console.log("connected status: ", isConnected);
-  }, [isConnected]);
-
   const handleUsernameSelection = (username: string) => {
-    setSelectedUsername(username);
-    socket.auth = { username };
+    setUsernameSelected(true);
+    const self: User = { userID: uuidv4(), username, self: true, connected: true, unread_messages: 0, messages: [] };
+    setSelfUser(self);
+    socket.auth = { id: self.userID, username };
     socket.connect();
   }
 
   return (
     <>
       {
-        testing || (selectedUsername !== null && selectedUsername !== "")
+        usernameSelected || testing
           ?
           <div className="flex items-start bg-base-100 size-full gap-0">
             <ResizableSidebar sidebarWidth={sidebarWidth} setSidebarWidth={setSidebarWidth} >
-              <UsersView users={users} selectedUsername={selectedUsername} />
+              <UsersView users={users} selfUser={selfUser} selectedUser={selectedUser} setSelectedUser={setSelectedUser} />
             </ResizableSidebar>
             <div className="w-full h-screen">
-              <ChatView self_username={selectedUsername} />
+              <ChatView selected_user={selectedUser} selfUser={selfUser} setUserMessages={setUserMessages} />
             </div>
           </div>
           :
@@ -108,9 +141,7 @@ function App() {
             <UsernameSelection handleUsernameSelection={handleUsernameSelection} />
           </div>
       }
-
     </>
-
   )
 }
 

@@ -11,29 +11,33 @@ const io = new Server({
 });
 
 io.use((socket, next) => {
+  const id = socket.handshake.auth.id;
   const username = socket.handshake.auth.username;
-  if (!username) {
+  if (!id || !username) {
     return next(new Error("invalid username"));
   }
+
+  socket.user_id = id;
   socket.username = username;
   next();
 });
 
 io.on('connection', (socket) => {
-  console.log('a user connected');
-
+  console.log("user connected - ", socket.username);
+  socket.onAny((event, ...args) => {
+    console.log(`${BLUE}[INFO]: ${RESET} ${event} - `, args);
+  });
   const users = [];
   for (let [id, socket] of io.of("/").sockets) {
     users.push({
-      userID: id,
+      userID: socket.user_id,
       username: socket.username,
     });
   }
 
   socket.emit("users", users);
-  console.log("before emit " + socket.username);
   socket.broadcast.emit("user connected", {
-    userID: socket.id,
+    userID: socket.user_id,
     username: socket.username,
   });
 
@@ -42,17 +46,18 @@ io.on('connection', (socket) => {
   });
 
   socket.on("disconnect", () => {
-    socket.broadcast.emit("user disconnected", socket.id);
+    socket.broadcast.emit("user disconnected", socket.user_id);
   });
 });
 
-io.of("/").adapter.on("create-room", (room) => {
-  console.log(`${BLUE}[INFO]: ${RESET} room ${room} was created`);
-});
+// io.of("/").adapter.on("create-room", (room) => {
+//   console.log(`${BLUE}[INFO]: ${RESET} room ${room} was created`);
+// });
 
-io.of("/").adapter.on("join-room", (room, id) => {
-  console.log(`${BLUE}[INFO]: ${RESET} socket ${id} has joined room ${room}`);
-});
+// io.of("/").adapter.on("join-room", (room, id) => {
+//   console.log(`${BLUE}[INFO]: ${RESET} socket ${id} has joined room ${room}`);
+// });
+io.of("/").adapter.on
 
 setInterval(() => {
   console.log([...(io.of("/").sockets)].map((socket) => socket[1].username));

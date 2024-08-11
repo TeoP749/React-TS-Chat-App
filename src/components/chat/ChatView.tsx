@@ -1,15 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
+import { User } from '../../App';
+import { socket } from '../../socket';
 import { Message } from '../message/MessageCard';
 import MessageView from '../message/MessageView';
 import MessageInput from '../message_input/MessageInput';
-import { socket } from '../../socket';
 import './ChatView.css';
 
-function ChatView(props: { self_username: string }) {
-    const { self_username } = props;
-    const [messages, setMessages] = useState([] as Message[]);
-    const ref: React.ForwardedRef<HTMLDivElement> = useRef(null);
+function ChatView(props: { selected_user: User, selfUser: User, setUserMessages: (userID: string, updateCallback: (prevMessages: Message[] | undefined) => Message[]) => void }) {
+    const { selected_user, selfUser, setUserMessages } = props;
+    const [messages, setMessages] = useState<Message[]>(selected_user?.messages || []);
+    const scrollElementRef: React.ForwardedRef<HTMLDivElement> = useRef(null);
     const add_message: (message: Message) => void = (message: Message) => {
+        setUserMessages(selected_user.userID, (prevMessages: Message[] | undefined): Message[] => {
+            const newMessages = [...(prevMessages || []), message];
+            return newMessages;
+        });
         setMessages(prevMessages => [...prevMessages, message]);
     }
 
@@ -23,35 +28,37 @@ function ChatView(props: { self_username: string }) {
 
     useEffect(() => {
         setTimeout(() => {
-            ref.current?.scroll({
-                top: ref.current?.scrollHeight,
+            scrollElementRef.current?.scroll({
+                top: scrollElementRef.current?.scrollHeight,
                 left: 0,
                 behavior: 'smooth'
             });
         }, 0);
     }, [messages]);
 
-    return (<>
-        <div className="bg-success-content size-full overflow-auto flex flex-col">
-            <MessageView messages={messages} current_user={self_username} ref={ref} />
-            <div className='mt-auto mx-[1vw] mb-[1vh] sticky flex items-center justify-center'>
-                <div className='w-full'>
-                    <MessageInput onMessage={
-                        (message) => {
-                            if (message.message.trim() != "") {
-                                add_message(message);
-                                socket.emit('message', message);
-                            } else {
-                                console.error("[ERROR]: empty message");
-                            }
-                        }
-                    }
-                        user={self_username}
-                    />
-                </div>
-            </div>
-        </div>
-    </>
+    return (
+        <>
+            {
+                selected_user.userID.trim() === "" ?
+                    <></>
+                    :
+                    <div className="bg-success-content size-full overflow-auto flex flex-col" >
+                        <MessageView messages={messages} selfUser={selfUser} ref={scrollElementRef} />
+                        <div className='mt-auto mx-[1vw] mb-[1vh] sticky flex items-center justify-center'>
+                            <div className='w-full'>
+                                <MessageInput onMessage={
+                                    (message) => {
+                                        add_message(message);
+                                        socket.emit('message', message);
+                                    }
+                                }
+                                    user={selfUser}
+                                />
+                            </div>
+                        </div>
+                    </div >
+            }
+        </>
     )
 }
 

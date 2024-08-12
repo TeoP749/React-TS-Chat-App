@@ -43,15 +43,18 @@ function MessageCard(props: { message: Message, show_sender?: boolean }) {
     const contentRef = useRef<HTMLDivElement>(null);
     const message_chunks: string[] = splitMessageIntoChunks(props.message.message, 30);
 
+    //adjust the timestamp position
     useLayoutEffect(() => {
         if (contentRef.current) {
             setContentHeight(contentRef.current.clientHeight);
         }
     }, [contentHeight]);
+
     const test: boolean = false;
+    const margin_top_style: string = show_sender ? 'mt-[1vh]' : 'mt-0';
     return (
         <>
-            <div className="card rounded-lg bg-base-300 border-0 max-w-[20vw] w-fit shadow-md mt-0 mb-[0.1vh]">
+            <div className={`card rounded-lg bg-base-100 border-0 max-w-[20vw] w-fit shadow-md mb-[0.1vh] ${margin_top_style}`}>
                 {
                     test ?
                         <></>
@@ -63,8 +66,8 @@ function MessageCard(props: { message: Message, show_sender?: boolean }) {
                                         <h2 className="text-primary card-compact py-0 m-0">{message.user.username}</h2>
                                     )}
                                     <div className="max-w-full text-left">
-                                        {message_chunks.map((message_chunk) => (
-                                            <p className="text-base-content text-lg py-0 my-0">{message_chunk}</p>
+                                        {message_chunks.map((message_chunk, index) => (
+                                            <p key={index} className="text-base-content text-lg py-0 my-0">{message_chunk}</p>
                                         ))}
                                     </div>
 

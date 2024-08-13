@@ -1,5 +1,5 @@
-function UsernameSelection(props: { handleUsernameSelection: (username: string) => void }) {
-    const { handleUsernameSelection } = props;
+function UsernameSelection(props: { setSelectedUsername: (username: string) => void }) {
+    const { setSelectedUsername } = props;
     return (
         <div className="card bg-base-100 w-96 shadow-xl">
             <div className="card-body flex items-center">
@@ -9,7 +9,7 @@ function UsernameSelection(props: { handleUsernameSelection: (username: string) 
                     if (e.key === 'Enter') {
                         const target: HTMLInputElement = e.target as HTMLInputElement;
                         if (target.value !== null && target.value.trim() !== "") {
-                            handleUsernameSelection((e.target as HTMLInputElement).value);
+                            setSelectedUsername((e.target as HTMLInputElement).value);
                         } else {
                             alert("empty username");
                         }

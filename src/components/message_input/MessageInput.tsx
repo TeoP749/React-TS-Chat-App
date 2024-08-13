@@ -5,8 +5,8 @@ import { Message } from '../message/MessageCard';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../../App';
 
-function MessageInput(props: { onMessage: (message: Message) => void, user: User }) {
-    const { onMessage, user } = props;
+function MessageInput(props: { onMessage: (message: Message) => void, selfUser: User }) {
+    const { onMessage, selfUser: user } = props;
     const [message, setMessage] = useState("");
     const handleMessage = (message: string) => {
         if (message.trim() != "") {

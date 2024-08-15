@@ -33,7 +33,6 @@ io.use((socket, next) => {
 });
 
 io.on('connection', (socket) => {
-  console.log("user connected - ", socket.username);
   socket.onAny((event, ...args) => {
     console.log(`${BLUE}[INFO]: ${RESET} ${event} - `, args);
   });
@@ -63,15 +62,7 @@ io.on('connection', (socket) => {
   });
 });
 
-// io.of("/").adapter.on("create-room", (room) => {
-//   console.log(`${BLUE}[INFO]: ${RESET} room ${room} was created`);
-// });
-
-// io.of("/").adapter.on("join-room", (room, id) => {
-//   console.log(`${BLUE}[INFO]: ${RESET} socket ${id} has joined room ${room}`);
-// });
 io.of("/").adapter.on
-
 setInterval(() => {
   console.log([...(io.of("/").sockets)].map((socket) => socket[1].username));
 }, 1000)

@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { User } from "../../App";
 
 function sortByUnreadMessages(a: User, b: User): number {
@@ -10,11 +9,6 @@ function sortByUnreadMessages(a: User, b: User): number {
 
 function UsersView(props: { users: User[], selfUser: User, selectedUser: User, setSelectedUser: (username: User) => void }) {
     const { users, selfUser, selectedUser, setSelectedUser } = props;
-    console.log("RENDERING USERS VIEW - ", users);
-    console.log(users.filter((user) => (user.userID !== selfUser.userID) && user.connected).map((u) => u.username).join(','));
-    useEffect(() => {
-        console.log("selected user changed to: ", selectedUser.username);
-    }, [selectedUser]);
 
     return (
         <div className="size-full">

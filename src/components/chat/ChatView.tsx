@@ -6,9 +6,7 @@ import MessageInput from '../message_input/MessageInput';
 import './ChatView.css';
 
 export default function ChatView(props: { selected_user: User, messages: Message[], selfUser: User, onSelfMessage: (message: Message) => void }) {
-    console.log("RENDERING CHAT VIEW");
     const { selected_user, messages, selfUser, onSelfMessage } = props;
-    console.log(messages.map((message) => message.message).join(','));
     const scrollElementRef: React.ForwardedRef<HTMLDivElement> = useRef(null);
 
     useEffect(() => {

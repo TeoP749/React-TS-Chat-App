@@ -97,7 +97,6 @@ export default function App() {
 
   //when username is selected, create a user object and set it as the self user
   useEffect(() => {
-    console.log("changing self user with username: ", selectedUsername);
     if (!selectedUsername || selectedUsername.trim() === "") return;
     const self: User = { userID: uuidv4(), username: selectedUsername, self: true, connected: true, unread_messages: 0 };
     setSelfUser(self);
@@ -105,11 +104,9 @@ export default function App() {
 
   //when self user is set, connect the socket
   useEffect(() => {
-    console.log("self user changed to: ", selfUser);
     if (!selfUser.userID || selfUser.userID.trim() === "") return;
     socket.auth = { id: selfUser.userID, username: selfUser.username };
     socket.connect();
-
   }, [selfUser]);
 
   //when the selected user changes, reset the unread messages count
@@ -120,22 +117,17 @@ export default function App() {
 
   useEffect(() => {
     socket.on("users", (users: [{ userID: string; username: string; }]) => {
-      console.log("received users")
-      console.log("self user: ", selfUser);
       const processedUsers: UserStore = users
         .map((user: { userID: string; username: string; }) => processUser(user))
         .sort(sortUsers)
         .reduce((acc, user: User) => ({ ...acc, [user.userID]: user }), {});
 
-      console.log("processed users: ", processedUsers);
       setUsers(processedUsers);
     });
 
-    socket.on("user connected", (user: { userID: string, username: string }) => {
-      console.log("user connected - " + user.username);
+    socket.on("user connected", (user: { userID: string, username: string }): void => {
       setUsers((prevUsers) => {
         const newUser = processUser(user);
-        console.log("new user: ", newUser);
         return {
           ...prevUsers,
           [newUser.userID]: newUser
@@ -169,9 +161,6 @@ export default function App() {
       setUserMessages(from, (prevMessages: Message[] | undefined): Message[] => [...(prevMessages || []), message]);
 
       if (selectedUser.userID !== from) {
-        console.log("FROM: ", from);
-        console.log("user ids: ", users[from]);
-        console.log("PREV UNREAD MESSAGES: ", users[from].unread_messages);
         changeUnreadMessageCount(from, (prevUnreadMessagesCount: number | undefined): number => (prevUnreadMessagesCount || 0) + 1);
       }
     });
